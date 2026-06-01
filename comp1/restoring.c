@@ -19,7 +19,7 @@ int main ()
     //}
 
     unsigned int bigger = 0;
-    unsigned int smaller = 0xffffff;
+    unsigned int smaller = 0xffffffff;
     unsigned int secBigger = 0;
 
     for(int i = 0; i < 4; i++)
