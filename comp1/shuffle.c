@@ -9,56 +9,56 @@ int main ()
     int size = 0;
     int blueScore = 0;
     int redScore = 0;
-    char blue[1000];
-    char red[1000];
-    char sizeArray[4];
+    char blue[10000];
+    char red[10000];
+    // char sizeArray[4];
     
-    scanf("%1d", &sampleSize); getchar();
+    scanf("%d", &sampleSize); getchar();
 
     
-    scanf("%1d", &size); getchar();
     for(int i; i < sampleSize; i++)
     {
 
-       // scanf("%s", red); getchar();
-       fgets(red, size, stdin);
-       //scanf("%s", blue); getchar();
-       fgets(blue, size, stdin);
+        scanf("%d", &size); getchar();
 
-       for(int j = 0; j < size; j++)
-       {
-           if(!(red[j] == blue[j]))
-           {
-               if(red[j] > blue[j])
-               {
-                   redScore++;
-               }
-               else
-               {
-                   blueScore++;
-               }
-           }
-       }
+        // scanf("%s", red); getchar();
+        fgets(red, sizeof(red), stdin);
+        //scanf("%s", blue); getchar();
+        fgets(blue, sizeof(blue), stdin);
 
-       if (redScore > blueScore)
-       {
-           printf("RED\n");
-       }
-       else
-       {
-           if (redScore == blueScore)
-           {
-               printf("EQUAL\n");
-           }
-           else
-           {
-               printf("BLUE\n");
-           }
-       }
+        for(int j = 0; j < size; j++)
+        {
+            if(!(red[j] == blue[j]))
+            {
+                if(red[j] > blue[j])
+                {
+                    redScore++;
+                }
+                else
+                {
+                    blueScore++;
+                }
+            }
+        }
 
-       redScore = 0;
-       blueScore = 0;
-       scanf("%1d", &size);
+        if (redScore > blueScore)
+        {
+            printf("RED\n");
+        }
+        else
+        {
+            if (redScore == blueScore)
+            {
+                printf("EQUAL\n");
+            }
+            else
+            {
+                printf("BLUE\n");
+            }
+        }
+
+        redScore = 0;
+        blueScore = 0;
     }
 
     return 0;
