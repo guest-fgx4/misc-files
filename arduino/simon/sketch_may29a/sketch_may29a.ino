@@ -286,21 +286,23 @@ void executarEstadoJogo()
 
         // Serial.println("=========================Jogador=========================");
 
-        if (numero == 1 && estado == JogoDados[jogadorIndex] ) {
+        if (numero == 1 && estado == JogoDados[jogadorIndex] && acao == BUTTON_PRESSED_IND) {
           Serial.println("Acertou");
-          delay(50);  // Evita o efeito de debounce do botão
+          delay(700);  // Evita o efeito de debounce do botão
           jogadorIndex++;
           if (jogadorIndex == (jogoAtual.faseAtual + 1))
           {
-            Serial.println("Ganhou");
-            tone(3, 120, 100);
+            Serial.println("acertou");
+            MFS.beep();
+            delay(50);
             estadoJogo = ESTADOJOGO::VITORIA;
           }
         }
-        else
+        else if (numero == 1 && estado != JogoDados[jogadorIndex] && acao == BUTTON_PRESSED_IND)
         {
           MFS.write("0000");
           delay(1000);
+          mostrarDados();
           jogadorIndex = 0;
           
         }
@@ -327,11 +329,9 @@ void loop() {
   {
     Serial.println("Estado vitoria");
       delay(2000);
-      MFS.write("OK");
-      delay(2000);
-      MFS.write("WIN");
-      delay(2000);
-
+      MFS.write("Cool");
+      delay(3000);
+  
       jogoAtual.faseAtual++;
       if (jogoAtual.faseAtual > jogoAtual.faseMaxima)
       {
