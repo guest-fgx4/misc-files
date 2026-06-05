@@ -13,7 +13,7 @@ const int pinoTrigger = 5;
 const int pinoEcho = 6;
 
 //Filtro
-const int tamanhoFiltro = 10;
+constexpr int tamanhoFiltro = 10;
 int filtro[tamanhoFiltro];
 int indexAtual = 0;
 
@@ -22,9 +22,9 @@ int indexAtual = 0;
 typedef struct dadosJogo {
   int faseAtual   = 0;
   int faseMaxima  = 10;
-  int dados[faseMaxima];
 } dadosJogo; 
 
+int jogadorIndex = 0;
 short jogoLoop = 1;
 
 enum class ESTADOJOGO
@@ -40,14 +40,14 @@ ESTADOJOGO operator++ (ESTADOJOGO& estadoJogo, int)
 {
   switch(estadoJogo)
   {
-    case ESTADOJOGO::INCIO:
+    case ESTADOJOGO::INICIO:
       estadoJogo = ESTADOJOGO::SIMON;
       break;
     case ESTADOJOGO::SIMON:
       estadoJogo = ESTADOJOGO::JOGADOR;
       break;
     case ESTADOJOGO::JOGADOR:
-      estadoJogo = ESTADOJOGO::VITORIA
+      estadoJogo = ESTADOJOGO::VITORIA;
       break;
     case ESTADOJOGO::VITORIA:
       estadoJogo = ESTADOJOGO::PERDA;
@@ -62,12 +62,19 @@ ESTADOJOGO operator++ (ESTADOJOGO& estadoJogo, int)
 ESTADOJOGO estadoJogo = ESTADOJOGO::INICIO;
 
 dadosJogo jogoAtual;
+int JogoDados[10] = {};
 
 void definirSequencia(dadosJogo jogoAtual)
 {
   for(int i = 0; i <= jogoAtual.faseAtual; i++)
   {
-    jogoAtual.dados[i] = (rand() % 4);
+    int aux = (rand() % 3) + 1;
+    JogoDados[i] = aux;
+    // Serial.println("================================");
+    // Serial.println(aux);
+    // Serial.println("Valor da senha:");
+    // Serial.println(JogoDados[i]);
+    // Serial.println("================================");
   }
 }
 
@@ -75,7 +82,6 @@ void inicializarJogo()
 {
   jogoAtual.faseAtual = 0;
   jogoAtual.faseMaxima = 10;
-  jogoAtual.dados[jogoAtual.faseMaxima];
 
   definirSequencia(jogoAtual);
 }
@@ -94,7 +100,7 @@ int fazerMedia()
 void adicionarValorMedia(int valor)
 {
   filtro[indexAtual] = valor;
-  indexAtual = (indexAtual + 1) % tamahoFiltro;
+  indexAtual = (indexAtual + 1) % tamanhoFiltro;
 }
 
 // Esta função mede a distância usando o sensor
@@ -106,19 +112,15 @@ int converterDistancia(int distancia) {
    
   }
   else if (distancia >= 10 && distancia < 20) {
-    MFS.write("2");
     return 2; // Nível 2
   }
   else if (distancia >= 20 && distancia < 30) {
-    MFS.write("3");
     return 3; // Nível 3
   }
   else if (distancia >= 30 && distancia < 40) {
-    MFS.write("4");
     return 4; // Nível 4
   }
   else {
-    MFS.write("0");
     return 0; // Fora da faixa
   }
 }
@@ -155,33 +157,27 @@ int medirDistancia()
 
 
 // Esta função faz o buzzer apitar
-void mostrarEstado(int distancia) {
-     if (distancia >= 0 && distancia < 10) {
+void mostrarEstado(int estado) {
+  if (estado == 1) {
     MFS.write("1");
-    //MFS.beep();
-    tone(3, 420, 500);
+    
+   
   }
-  else if (distancia >= 10 && distancia < 20) {
+  else if (estado == 2) {
     MFS.write("2");
-   // MFS.beep();
-    tone(3, 420, 500);
     
   }
-  else if (distancia >= 20 && distancia < 30) {
+  else if (estado == 3) {
     MFS.write("3");
-    //MFS.beep();
-    tone(3, 800, 500);
     
   }
-   else if (distancia >= 30 && distancia < 40) {
+  else if (estado == 4) {
     MFS.write("4");
-    //MFS.beep();
-    tone(3, 800, 500);
     
   }
-   else {
+  else {
     MFS.write("0");
-    MFS.beep(0); 
+
   }
 }
 
@@ -242,8 +238,10 @@ void mostrarDados()
 {
   for(int i = 0; i <= jogoAtual.faseAtual; i++)
   {
-    MFS.write(jogoAtual.dados[i]); 
-    tone(3, 120, 500);
+    MFS.write(JogoDados[i]); 
+    // tone(3, 120, 100);
+    delay(1500);
+    MFS.write("");
     delay(500);
   }
 }
@@ -252,25 +250,70 @@ void executarEstadoJogo()
 {
   switch(estadoJogo)
   {
-    case ESTADOJOGO::INCIO:
-
-      MFS.write("LOAD");
+    case ESTADOJOGO::INICIO:
+      MFS.write("8888");
       delay(1000);
       estadoJogo++;
       break;
     case ESTADOJOGO::SIMON:
-      mostarDados();
+      mostrarDados();
+      MFS.write("SET");
+      delay(1000);
+      MFS.write("GO");
+      delay(1000);
       estadoJogo++;
       break;
     case ESTADOJOGO::JOGADOR:
       int estado = converterDistancia(medirDistancia());
+      Serial.println(medirDistancia());
+      Serial.println(estado);
       mostrarEstado(estado);
       mostrarAlertaComLeds(estado);
+
+      byte botao = MFS.getButton();
+      if (botao) {
+        byte numero = botao & B00111111;
+        byte acao = botao & B11000000;
+
+        // Serial.println("Entrou no botao");
+        // Serial.println("Valor index dados");
+        // Serial.println(JogoDados[jogadorIndex]);
+
+        // for(int x = 0; x < 10; x++)
+        // {
+        //   Serial.print(JogoDados[x]);
+        // }
+
+        // Serial.println("=========================Jogador=========================");
+
+        if (numero == 1 && estado == JogoDados[jogadorIndex] ) {
+          Serial.println("Acertou");
+          delay(50);  // Evita o efeito de debounce do botão
+          jogadorIndex++;
+          if (jogadorIndex == (jogoAtual.faseAtual + 1))
+          {
+            Serial.println("Ganhou");
+            tone(3, 120, 100);
+            estadoJogo = ESTADOJOGO::VITORIA;
+          }
+        }
+        else
+        {
+          MFS.write("0000");
+          delay(1000);
+          jogadorIndex = 0;
+          
+        }
+      }
       break;
     case ESTADOJOGO::VITORIA:
       break;
     case ESTADOJOGO::PERDA:
+    Serial.println("Estado perda");
       break;
+    default:
+    Serial.println("estado finish");
+    break;
   }
 }
 
@@ -280,27 +323,28 @@ void loop() {
 
   executarEstadoJogo();
 
-
-  if (jogoLoop & 0x1)
+  if (estadoJogo == ESTADOJOGO::VITORIA)
   {
+    Serial.println("Estado vitoria");
+      delay(2000);
+      MFS.write("OK");
+      delay(2000);
+      MFS.write("WIN");
+      delay(2000);
+
+      jogoAtual.faseAtual++;
+      if (jogoAtual.faseAtual > jogoAtual.faseMaxima)
+      {
+        MFS.write("OVER");
+        delay(2000);
+        jogoAtual.faseAtual = 0;
+      }
+      definirSequencia(jogoAtual);
+      estadoJogo = ESTADOJOGO::SIMON;
   }
-  else
-  {
 
-  }
+  Serial.println("Continue");
 
-
-
-
-
-
-  if (true) {
-        Serial.println(ultimaDistancia);        // Mostra a distância no monitor serial
-
-  } else {
-    MFS.write("");                // Apaga display
-    MFS.writeLeds(LED_ALL, OFF);  // Apaga LEDs
-  }
   delay(100);  // Pequena pausa
 }
 
