@@ -17,16 +17,18 @@ bool timerRunning = false;
 String keyword = "";
 String passwordEntered = "";
 int keywordSize = 8;
+int passwordIndex = 0;
 
 int potentiometer = 0;
 
 void setup()
 {
-  keyword = generateRandomKeyword();
-
   Serial.begin(9600);                     // Inicia comunicação com o monitor serial (9600 bps)
   Timer1.initialize();                    // Inicializa o Timer1
   MFS.initialize(&Timer1);                // Inicializa o Shield Multifuncional com o Timer1
+
+  keyword = generateRandomKeyword();
+  Serial.println(keyword);
 }
 
 void loop()
@@ -56,17 +58,17 @@ void loop()
           }
           else {
             Buzzer(1);
-            passwordEntered += buttonNumber;
+            validarSenha(buttonNumber);
           }
         }
         if (buttonNumber == 2) {
           Buzzer(1);
-          passwordEntered += buttonNumber;
+          validarSenha(buttonNumber);
         }
           
         if (buttonNumber == 3) {
           Buzzer(1);
-          passwordEntered += buttonNumber;
+          validarSenha(buttonNumber);
         } 
       Serial.println(passwordEntered);
 
@@ -86,6 +88,24 @@ void loop()
   }
 
   updateTimer();
+}
+
+void validarSenha(int butao)
+{
+
+  if((butao + 48) == (int)keyword[passwordIndex])
+  {
+    passwordIndex++;
+
+    if (password == 9)
+    {
+      Serial.println("Ganhou!");
+    }
+  }
+  else
+  {
+    countdown = countdown - 2;
+  }
 }
 
 int getSecurityTime(int potentiometerValue) {
@@ -122,12 +142,27 @@ void updateTimer() {
 
       countdown--;
 
-      MFS.write(countdown);
+      if (PANIC)
+      {
+        MFS.write(countdown);
+      }
+      else
+      {
+        MFS.write("");
+        delay(50)
+        MFS.write(countdown);
+      }
+
+
 
       Serial.println(countdown);
 
       // acabou o tempo
-      if (countdown <= 0) {
+      if (countdown <= 20 && countdown > 0)
+      {
+        PANIC = true;
+        
+      } else  if (countdown <= 0 ) {
 
         countdown = 0;
 
